@@ -1,0 +1,2 @@
+[console_scripts]
+realpython = fullmetal_utils.__main__:main

@@ -1,0 +1,11 @@
+SQLAlchemy
+alembic
+
+[:python_version < "3.11"]
+tomli
+
+[dev]
+black
+isort
+pip-tools
+pytest
