@@ -3,6 +3,8 @@ MANIFEST.in
 README.md
 pyproject.toml
 src/fullmetal_utils/__init__.py
+src/fullmetal_utils/database.py
+src/fullmetal_utils/table.py
 src/fullmetal_utils.egg-info/PKG-INFO
 src/fullmetal_utils.egg-info/SOURCES.txt
 src/fullmetal_utils.egg-info/dependency_links.txt
