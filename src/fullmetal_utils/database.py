@@ -19,7 +19,7 @@ class DataBase:
         if recreate:
             clear_database(engine, schema)
 
-    def query(self, sql: str, params) -> Iterator[dict]:
+    def query(self, sql: str) -> Iterator[dict]:
         """
         The db.query(sql) function executes a SQL query and returns an iterator
         over Python dictionaries representing the resulting rows:
@@ -27,7 +27,7 @@ class DataBase:
         with self.engine.connect() as connection:
             result = connection.execute(text(sql))
             for row in result:
-                yield dict(row)
+                yield row._mapping
 
 
 def clear_database(
