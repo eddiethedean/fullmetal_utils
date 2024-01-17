@@ -1,4 +1,5 @@
-from typing import Generator, Optional
+from typing import Generator, List, Optional
+import sqlalchemy as sa
 from sqlalchemy import Engine, MetaData, Connection, create_engine, text
 
 from fullmetal_utils.row import row_to_dict
@@ -24,15 +25,23 @@ class DataBase:
         else:
             self.engine = engine
 
+        self.schema = schema
+
         if recreate:
             clear_database(engine, schema)
 
     def __getitem__(self, name: str) -> Table:
         return self.table(name)
+    
+    @property
+    def tables(self) -> List[Table]:
+        return [Table(self.engine, name, self.schema) for name in self.table_names()]
+    
+    def table_names(self, schema=None) -> List[str]:
+        return get_table_names(self.engine, self.schema)
 
     def table(self, name: str) -> Table:
         return Table(self.engine, name, self.schema)
-
 
     def query(self, sql: str) -> Generator[dict, None, None]:
         """
@@ -59,3 +68,25 @@ def clear_database(
     my_metadata: MetaData = MetaData(schema=schema)
     my_metadata.reflect(bind=connection, schema=schema, resolve_fks=False)
     my_metadata.drop_all(bind=connection)
+
+
+def get_table_names(
+    engine: sa.engine.Engine,
+    schema: Optional[str] = None
+) ->  _t.List[str]:
+    """
+    Get a list of the names of tables in the database connected to the given engine.
+
+    Parameters
+    ----------
+    engine : _sa_engine.Engine
+        An SQLAlchemy engine instance connected to a database.
+    schema : Optional[str], optional
+        The name of the schema to filter by, by default None.
+
+    Returns
+    -------
+    List[str]
+        A list of table names.
+    """
+    return sa.inspect(engine).get_table_names(schema)
