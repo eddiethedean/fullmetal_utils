@@ -7,7 +7,8 @@ from sqlalchemy import Engine
 from tinytim.rows import row_dicts_to_data
 from tinytim.data import column_names
 
-from fullmetal_utils import sa_orm, type_convert
+from . import sa_orm
+from . import type_convert
 
 
 def create_table(

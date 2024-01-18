@@ -19,6 +19,8 @@ dependencies = [
     "SQLAlchemy",
     "alembic",
     'tomli; python_version < "3.11"',
+    "packaging",
+    "tinytim"
 ]
 requires-python = ">=3.9"
 

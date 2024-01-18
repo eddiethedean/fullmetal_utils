@@ -4,7 +4,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm.decl_api import DeclarativeMeta
 from sqlalchemy.ext.automap import automap_base
 
-from fullmetal_utils.exeptions import MissingPrimaryKey
+from .exeptions import MissingPrimaryKey
 
 
 def connection_from_session(session: sa.orm.Session) -> sa.Connection:

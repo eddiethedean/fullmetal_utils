@@ -1,10 +1,23 @@
-from typing import Sequence
+from typing import Optional, Sequence
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
-from fullmetal_utils.constraints import missing_primary_key
-from fullmetal_utils.exeptions import MissingPrimaryKey
-from fullmetal_utils.sa_orm import get_class
+from .constraints import missing_primary_key
+from .exeptions import MissingPrimaryKey
+from .sa_orm import connection_from_session, get_class, get_table
+
+
+def insert_records(
+    table_name: str,
+    records: Sequence[dict],
+    engine: sa.Engine,
+    schema: Optional[str] = None
+) -> None:
+    with Session(engine) as session:
+        connection = connection_from_session(session)
+        table = get_table(table_name, connection, schema)
+        insert_records_session(table, records, session)
+        session.commit()
 
 
 def insert_records_session(

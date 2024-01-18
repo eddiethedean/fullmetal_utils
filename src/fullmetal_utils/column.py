@@ -2,6 +2,7 @@ from typing import Any, Optional
 from dataclasses import dataclass
 
 
+@dataclass(frozen=True)
 class Column:
     cid: int
     name: str

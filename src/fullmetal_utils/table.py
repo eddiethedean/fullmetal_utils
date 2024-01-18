@@ -1,20 +1,19 @@
 from typing import Iterable, List, Optional
 
 import sqlalchemy as sa
-from sqlalchemy import Engine
-from sqlalchemy.orm import Session
-from fullmetal_utils.column import Column
-from fullmetal_utils.create import create_table_from_rows
 
-from fullmetal_utils.insert import insert_records_session
-from fullmetal_utils.sa_orm import connection_from_session, get_table
-from fullmetal_utils.tables import get_table_names
+from .fullmetalalchemy.columns import get_column_names
+from .fullmetalalchemy.create import create_table_from_rows
+from .fullmetalalchemy.insert import insert_records
+from .fullmetalalchemy.tables import get_table_names
+
+from fullmetal_utils.column import Column
 
 
 class Table:
     def __init__(
         self,
-        engine: Engine,
+        engine: sa.Engine,
         name: str,
         schema: Optional[str] = None
     ) -> None:
@@ -27,12 +26,10 @@ class Table:
     
     @property
     def columns(self) -> List[Column]:
-        ...
+        return [Column()]
 
     def column_names(self) -> List[str]:
-        with self.engine.connect() as connection:
-            table = get_table(self.name, connection, self.schema)
-        return get_column_names(table)
+        return get_column_names(self.name, self.engine, self.schema)
 
     def insert_all(self, rows: Iterable[dict], pks=[]) -> None:
         """
@@ -42,27 +39,6 @@ class Table:
         if self.name not in get_table_names(self.engine, self.schema):
             create_table_from_rows(self.name, rows, pks, self.engine, schema=self.schema)
 
-        with Session(self.engine) as session:
-            connection = connection_from_session(session)
-            table = get_table(self.name, connection, self.schema)
-            insert_records_session(table, rows, session)
-            session.commit()
+        insert_records(self.name, rows, self.engine, self.schema)
 
 
-def get_column_names(
-    table: sa.Table
-) ->  List[str]:
-    """
-    Returns a list of the column names for the given SQLAlchemy table object.
-
-    Parameters
-    ----------
-    table : sqlalchemy.Table
-        The SQLAlchemy table object to get column names for.
-
-    Returns
-    -------
-    List[str]
-        A list of the column names for the given table.
-    """
-    return [c.name for c in table.columns]

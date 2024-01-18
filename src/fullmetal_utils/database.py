@@ -1,16 +1,16 @@
 from typing import Generator, List, Optional
 import sqlalchemy as sa
-from sqlalchemy import Engine, MetaData, Connection, create_engine, text
 
-from fullmetal_utils.row import row_to_dict
+from .fullmetalalchemy.rows import row_to_dict
+from .fullmetalalchemy.tables import drop_tables, get_table_names
+
 from fullmetal_utils.table import Table
-from fullmetal_utils.tables import drop_tables, get_table_names
 
 
 class Database:
     def __init__(
         self,
-        engine: Optional[Engine] = None,
+        engine: Optional[sa.Engine] = None,
         schema: Optional[str] = None,
         recreate: Optional[bool] = None,
         memory: Optional[bool] = None
@@ -22,7 +22,7 @@ class Database:
         db = Database(engine, recreate=True)
         """
         if memory:
-            self.engine = create_engine('sqlite://')
+            self.engine = sa.create_engine('sqlite://')
         else:
             self.engine = engine
 
@@ -57,6 +57,6 @@ class Database:
         # {'name': 'Pancakes'}
         """
         with self.engine.connect() as connection:
-            result = connection.execute(text(sql))
+            result = connection.execute(sa.text(sql))
             for row in result:
                 yield row_to_dict(row)
