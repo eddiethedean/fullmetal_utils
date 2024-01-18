@@ -4,9 +4,11 @@ import sqlalchemy as sa
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 from fullmetal_utils.column import Column
+from fullmetal_utils.create import create_table_from_rows
 
 from fullmetal_utils.insert import insert_records_session
 from fullmetal_utils.sa_orm import connection_from_session, get_table
+from fullmetal_utils.tables import get_table_names
 
 
 class Table:
@@ -21,7 +23,7 @@ class Table:
         self.schema = schema
 
     def __repr__(self) -> str:
-        return f'<Table {self.name} {tuple()}>'
+        return f'<Table {self.name} {tuple(self.column_names())}>'
     
     @property
     def columns(self) -> List[Column]:
@@ -37,10 +39,14 @@ class Table:
         Create new table from rows if table doesn't exist yet.
         Insert rows into table.
         """
+        if self.name not in get_table_names(self.engine, self.schema):
+            create_table_from_rows(self.name, rows, pks, self.engine, schema=self.schema)
+
         with Session(self.engine) as session:
             connection = connection_from_session(session)
             table = get_table(self.name, connection, self.schema)
             insert_records_session(table, rows, session)
+            session.commit()
 
 
 def get_column_names(

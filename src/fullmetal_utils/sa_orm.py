@@ -7,7 +7,7 @@ from sqlalchemy.ext.automap import automap_base
 from fullmetal_utils.exeptions import MissingPrimaryKey
 
 
-def connection_from_session(session: sa.Session) -> sa.Connection:
+def connection_from_session(session: sa.orm.Session) -> sa.Connection:
     return session.connection()
 
 
@@ -37,7 +37,12 @@ def get_metadata(
     >>> fa.features.get_metadata(engine)
     MetaData(bind=Engine(sqlite:///data/test.db))
     """
-    return sa.MetaData(bind=connection, schema=schema)
+    # 2.X version
+    meta = sa.MetaData(schema=schema)
+    meta.reflect(bind=connection)
+    return meta
+    # 1.X version
+    # return sa.MetaData(bind=connection, schema=schema)
 
 
 def get_table(
@@ -65,7 +70,6 @@ def get_table(
     metadata = get_metadata(connection, schema)
     return sa.Table(table_name,
                     metadata,
-                    autoload=True,
                     autoload_with=connection,
                     extend_existing=True,
                     schema=schema)

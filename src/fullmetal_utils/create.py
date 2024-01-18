@@ -52,7 +52,7 @@ def create_table(
             col = sa.Column(name, sa_type)
         cols.append(col)
 
-    metadata = sa.MetaData(engine)
+    metadata = sa_orm.get_metadata(engine, schema)
     table = sa.Table(table_name, metadata, *cols, schema=schema)
     if if_exists == 'replace':
         drop_table_sql = sa.schema.DropTable(table, if_exists=True)
