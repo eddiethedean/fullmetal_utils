@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 import sqlalchemy as sa
 from sqlalchemy.orm.decl_api import DeclarativeMeta
@@ -119,3 +119,44 @@ def get_class(
     if table_name not in Base.classes:
         raise MissingPrimaryKey()
     return Base.classes[table_name]
+
+
+def get_column(
+    table: sa.Table,
+    column_name: str
+) -> sa.Column:
+    """
+    Retrieve a SQLAlchemy column object from a SQLAlchemy table.
+
+    Parameters
+    ----------
+    table : sqlalchemy.Table
+        The SQLAlchemy table to retrieve the column from.
+    column_name : str
+        The name of the column to retrieve.
+
+    Returns
+    -------
+    sqlalchemy.Column
+        The SQLAlchemy column object corresponding to the given column name.
+    """
+    return table.c[column_name]
+
+
+def primary_key_columns(
+    table: sa.Table
+) ->  List[sa.Column]:
+    """
+    Return the primary key columns of a SQLAlchemy Table.
+
+    Parameters
+    ----------
+    table : sqlalchemy.Table
+        The table whose primary key columns will be returned.
+
+    Returns
+    -------
+    List of sqlalchemy.Column
+        The list of primary key columns for the input table.
+    """
+    return list(table.primary_key.columns)

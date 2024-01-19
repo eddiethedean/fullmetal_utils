@@ -1,8 +1,10 @@
-from typing import Iterable, List, Optional
+from typing import Any, Dict, Generator, Iterable, List, Optional
 
 import sqlalchemy as sa
 
-from .fullmetalalchemy.columns import get_column_names
+from fullmetal_utils.fullmetalalchemy.select import select_records_all
+
+from .fullmetalalchemy.columns import get_column_names, get_column_types
 from .fullmetalalchemy.create import create_table_from_rows
 from .fullmetalalchemy.insert import insert_records
 from .fullmetalalchemy.tables import get_table_names
@@ -26,10 +28,18 @@ class Table:
     
     @property
     def columns(self) -> List[Column]:
-        return [Column()]
+        return [Column(name, type) for name, type in self.column_types().items()]
+    
+    @property
+    def rows(self) -> Generator[Dict[str, Any], None, None]:
+        with self.engine.connect() as connection:
+            return select_records_all(self.name, connection)
 
     def column_names(self) -> List[str]:
         return get_column_names(self.name, self.engine, self.schema)
+    
+    def column_types(self) -> Dict[str, Any]:
+        return get_column_types(self.name, self.engine, self.schema)
 
     def insert_all(self, rows: Iterable[dict], pks=[]) -> None:
         """

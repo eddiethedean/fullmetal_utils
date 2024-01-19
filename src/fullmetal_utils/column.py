@@ -4,9 +4,8 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Column:
-    cid: int
     name: str
     type: str
-    notnull: bool
+    notnull: bool = False
     default_value: Optional[Any] = None
     is_pk: bool = False

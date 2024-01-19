@@ -1,4 +1,4 @@
-from typing import Generator, List, Optional
+from typing import Any, Generator, List, Optional
 import sqlalchemy as sa
 
 from .fullmetalalchemy.rows import row_to_dict
@@ -38,13 +38,21 @@ class Database:
     def tables(self) -> List[Table]:
         return [Table(self.engine, name, self.schema) for name in self.table_names()]
     
-    def table_names(self, schema=None) -> List[str]:
+    def table_names(self) -> List[str]:
         return get_table_names(self.engine, self.schema)
+    
+    # TODO: view_names method
 
     def table(self, name: str) -> Table:
         return Table(self.engine, name, self.schema)
 
-    def query(self, sql: str) -> Generator[dict, None, None]:
+    def query(
+        self,
+        sql: str,
+        parameters: Optional[Any] = None,
+        *,
+        execution_options: Optional[Any] = None
+    ) -> Generator[dict, None, None]:
         """
         The db.query(sql) function executes a SQL query and returns a generator
         of Python dictionaries representing the resulting rows:
@@ -56,7 +64,19 @@ class Database:
         # {'name': 'Cleo'}
         # {'name': 'Pancakes'}
         """
+        results = self.execute(sql, parameters, execution_options=execution_options)
+        for row in results:
+            yield row_to_dict(row)
+
+    def execute(
+        self,
+        sql: str,
+        parameters: Optional[Any] = None,
+        *,
+        execution_options: Optional[Any] = None
+    ) -> sa.engine.CursorResult:
+        """
+        A wrapper around .execute() on the underlying SqlAlchemy engine connection. 
+        """
         with self.engine.connect() as connection:
-            result = connection.execute(sa.text(sql))
-            for row in result:
-                yield row_to_dict(row)
+            return connection.execute(sa.text(sql), parameters, execution_options=execution_options)
