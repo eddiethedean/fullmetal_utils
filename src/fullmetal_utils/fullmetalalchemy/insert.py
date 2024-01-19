@@ -76,7 +76,8 @@ def insert_records_fast_session(
     """
     if missing_primary_key(table):
         raise MissingPrimaryKey()
-    table_class = get_class(table.name, session, schema=table.schema)
+    connection = session.connection()
+    table_class = get_class(table.name, connection, schema=table.schema)
     mapper = sa.inspect(table_class)
     session.bulk_insert_mappings(mapper, records)
 

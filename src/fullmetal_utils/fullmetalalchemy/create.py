@@ -1,4 +1,4 @@
-from typing import Any, Iterable, Optional, Sequence, Union
+from typing import Any, Dict, Iterable, Optional, Sequence, Union
 import decimal
 import datetime
 
@@ -12,10 +12,9 @@ from . import type_convert
 
 
 def create_table(
-    table_name: str,
-    column_names:  Sequence[str],
-    column_types:  Sequence,
-    primary_key: Sequence[str],
+    name: str,
+    columns: Dict[str, Any],
+    primary_key: str | Sequence[str],
     engine: Engine,
     schema: Optional[str] = None,
     autoincrement: Optional[bool] = False,
@@ -26,13 +25,16 @@ def create_table(
 
     Parameters
     ----------
-    table_name : str
-    column_names : Sequence[str]
-    column_types : Sequence
-    primary_key : Sequence[str]
+    name : str
+        Name of table
+    columns : Dict[str, Any]
+        Dictionary mapping column names to their types, for example {"name": str, "age": int}
+    primary_key : str | Sequence[str]
+        String name of column to use as a primary key, or a sequence of strings for a compound primary key covering multiple columns
     engine : SqlAlchemy Engine
     schema : Optional[str]
     autoincrement : Optional[bool] default, None
+        Autoincrement primary key
     if_exists : Optional[str] default, 'error'
 
     Returns
@@ -41,20 +43,20 @@ def create_table(
     """
     cols = []
     
-    for name, python_type in zip(column_names, column_types):
+    for col_name, python_type in columns.items():
         sa_type = type_convert._type_convert[python_type]
         if type(primary_key) is str:
             primary_key = [primary_key]
-        if name in primary_key:
-            col = sa.Column(name, sa_type,
+        if col_name in primary_key:
+            col = sa.Column(col_name, sa_type,
                             primary_key=True,
                             autoincrement=autoincrement)
         else:
-            col = sa.Column(name, sa_type)
+            col = sa.Column(col_name, sa_type)
         cols.append(col)
 
     metadata = sa_orm.get_metadata(engine, schema)
-    table = sa.Table(table_name, metadata, *cols, schema=schema)
+    table = sa.Table(name, metadata, *cols, schema=schema)
     if if_exists == 'replace':
         drop_table_sql = sa.schema.DropTable(table, if_exists=True)
         with engine.connect() as con:
@@ -62,7 +64,7 @@ def create_table(
     table_creation_sql = sa.schema.CreateTable(table)
     with engine.connect() as con:
         con.execute(table_creation_sql)
-    return sa_orm.get_table(table_name, engine, schema=schema)
+    return sa_orm.get_table(name, engine, schema=schema)
 
 
 def column_datatype(values: Iterable) -> type:
@@ -108,4 +110,5 @@ def create_table_from_rows(
     if column_types is None:
         column_types = [column_datatype(values) for values in data.values()]
     col_names = column_names(data)
-    return create_table(table_name, col_names, column_types, primary_key, engine, schema, autoincrement, if_exists)
+    cols = dict(zip(col_names, column_types))
+    return create_table(table_name, cols, primary_key, engine, schema, autoincrement, if_exists)
