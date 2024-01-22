@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from .constraints import missing_primary_key
 from .exeptions import MissingPrimaryKey
-from .sa_orm import connection_from_session, get_class, get_table
+from .sa_orm import get_class_from_session, get_table_from_engine
 
 
 def insert_records(
@@ -13,9 +13,8 @@ def insert_records(
     engine: sa.engine.Engine,
     schema: Optional[str] = None
 ) -> None:
+    table = get_table_from_engine(table_name, engine, schema)
     with Session(engine) as session:
-        connection = connection_from_session(session)
-        table = get_table(table_name, connection, schema)
         insert_records_session(table, records, session)
         session.commit()
 
@@ -76,8 +75,7 @@ def insert_records_fast_session(
     """
     if missing_primary_key(table):
         raise MissingPrimaryKey()
-    connection = session.connection()
-    table_class = get_class(table.name, connection, schema=table.schema)
+    table_class = get_class_from_session(table.name, session, schema=table.schema)
     mapper = sa.inspect(table_class)
     session.bulk_insert_mappings(mapper, records)
 

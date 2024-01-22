@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional
 
 import sqlalchemy as sa
 
-from .sa_orm import get_table
+from .sa_orm import get_table_from_engine
 
 
 def get_column_names_from_table(
@@ -46,9 +46,8 @@ def get_column_names(
     List[str]
         A list of the column names for the given table name.
     """
-    with engine.connect() as connection:
-        table = get_table(table_name, connection, schema)
-        return get_column_names_from_table(table)
+    table = get_table_from_engine(table_name, engine, schema)
+    return get_column_names_from_table(table)
     
 
 def get_column_types_from_table(
@@ -94,6 +93,5 @@ def get_column_types(
         A dictionary with the names of columns as keys and the SQLAlchemy
         types of the columns as values.
     """
-    with engine.connect() as connection:
-        table = get_table(table_name, connection, schema)
-        return get_column_types_from_table(table)
+    table = get_table_from_engine(table_name, engine, schema)
+    return get_column_types_from_table(table)

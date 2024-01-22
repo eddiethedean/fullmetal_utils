@@ -1,9 +1,8 @@
-from typing import Any, Dict, Generator, Iterable, List, Optional, Sequence
+from typing import Any, Dict, Generator, List, Optional, Sequence
 
 import sqlalchemy as sa
 
-from fullmetal_utils.fullmetalalchemy.select import select_records_all
-
+from .fullmetalalchemy.select import select_records_all
 from .fullmetalalchemy.columns import get_column_names, get_column_types
 from .fullmetalalchemy.create import create_table_from_rows
 from .fullmetalalchemy.insert import insert_records
@@ -32,8 +31,7 @@ class Table:
     
     @property
     def rows(self) -> Generator[Dict[str, Any], None, None]:
-        with self.engine.connect() as connection:
-            return select_records_all(self.name, connection)
+        return select_records_all(self.name, self.engine)
 
     def column_names(self) -> List[str]:
         return get_column_names(self.name, self.engine, self.schema)

@@ -55,7 +55,7 @@ def create_table(
             col = sa.Column(col_name, sa_type)
         cols.append(col)
 
-    metadata = sa_orm.get_metadata(engine, schema)
+    metadata = sa_orm.get_metadata_from_engine(engine, schema)
     table = sa.Table(name, metadata, *cols, schema=schema)
     if if_exists == 'replace':
         drop_table_sql = sa.schema.DropTable(table, if_exists=True)
@@ -64,7 +64,7 @@ def create_table(
     table_creation_sql = sa.schema.CreateTable(table)
     with engine.connect() as con:
         con.execute(table_creation_sql)
-    return sa_orm.get_table(name, engine, schema=schema)
+    return sa_orm.get_table_from_engine(name, engine, schema=schema)
 
 
 def column_datatype(values: Iterable) -> type:

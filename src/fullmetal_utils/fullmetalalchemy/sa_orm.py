@@ -1,22 +1,15 @@
-from typing import List, Optional, Union
+from typing import List, Optional
 
 import sqlalchemy as sa
 from sqlalchemy.orm.decl_api import DeclarativeMeta
 from sqlalchemy.ext.automap import automap_base
-from sqlalchemy.engine.base import Connection
 from sqlalchemy.orm.session import Session
 
 from .exeptions import MissingPrimaryKey
 
-Connectable = Union[sa.Engine, Connection]
 
-
-def connection_from_session(session: Session) -> Connection:
-    return session.connection()
-
-
-def get_metadata(
-    connection: Connectable,
+def get_metadata_from_engine(
+    engine: sa.Engine,
     schema: Optional[str] = None
 ) -> sa.MetaData:
     """
@@ -24,7 +17,7 @@ def get_metadata(
 
     Parameters
     ----------
-    connection : fullmetalalchemy.types.SqlConnection
+    engine : fullmetalalchemy.engine.Engine
         The database connection to associate with the MetaData object.
     schema : Optional[str], default None
         The name of the schema to use with the MetaData object. If None, the default schema is used.
@@ -33,25 +26,31 @@ def get_metadata(
     -------
     sqlalchemy.MetaData
         The MetaData object associated with the input connection and schema.
-
-    Examples
-    --------
-    >>> import fullmetalalchemy as fa
-    >>> engine = fa.create_engine('sqlite:///data/test.db')
-    >>> fa.features.get_metadata(engine)
-    MetaData(bind=Engine(sqlite:///data/test.db))
     """
     # 2.X version
     meta = sa.MetaData(schema=schema)
-    meta.reflect(bind=connection)
+    meta.reflect(bind=engine)
     return meta
     # 1.X version
-    # return sa.MetaData(bind=connection, schema=schema)
+    # return sa.MetaData(bind=engine, schema=schema)
 
 
-def get_table(
+def get_metadata_from_session(
+    session: Session,
+    schema: Optional[str] = None
+) -> sa.MetaData:
+    """
+    Get a SQLAlchemy MetaData object associated with a given database connection and schema.
+    """
+    con = session.connection()
+    meta = sa.MetaData(schema=schema)
+    meta.reflect(bind=con)
+    return meta
+
+
+def get_table_from_engine(
     table_name: str,
-    connection: Connectable,
+    engine: sa.Engine,
     schema: Optional[str] = None
 ) -> sa.Table:
     """
@@ -71,17 +70,17 @@ def get_table(
     sqlalchemy.Table
         The Table object associated with the input table name, database connection, and schema.
     """
-    metadata = get_metadata(connection, schema)
+    metadata = get_metadata_from_engine(engine, schema)
     return sa.Table(table_name,
                     metadata,
-                    autoload_with=connection,
+                    autoload_with=engine,
                     extend_existing=True,
                     schema=schema)
 
 
-def get_class(
+def get_class_from_engine(
     table_name: str,
-    connection: Connectable,
+    engine: sa.Engine,
     schema: Optional[str] = None
 ) -> DeclarativeMeta:
     """
@@ -106,17 +105,46 @@ def get_class(
     ------
     MissingPrimaryKey
         If the specified table does not have a primary key.
-
-    Example
-    -------
-    >>> import fullmetalalchemy as fa
-
-    >>> engine = fa.create_engine('sqlite:///data/test.db')
-    >>> fa.features.get_class('xy', engine)
-    sqlalchemy.ext.automap.xy
     """
-    metadata = get_metadata(connection, schema)
+    metadata = get_metadata_from_engine(engine, schema)
+    metadata.reflect(engine, only=[table_name], schema=schema)
+    Base = automap_base(metadata=metadata)
+    Base.prepare()
+    if table_name not in Base.classes:
+        raise MissingPrimaryKey()
+    return Base.classes[table_name]
 
+
+def get_class_from_session(
+    table_name: str,
+    session: Session,
+    schema: Optional[str] = None
+) -> DeclarativeMeta:
+    """
+    Reflects the specified table and returns a declarative class that corresponds to it.
+
+    Parameters
+    ----------
+    table_name : str
+        The name of the table to reflect.
+    connection : Union[SqlConnection, Session]
+        The connection to use to reflect the table. This can be either an `SqlConnection`
+        or an active `Session` object.
+    schema : Optional[str], optional
+        The name of the schema to which the table belongs, by default None.
+
+    Returns
+    -------
+    DeclarativeMeta
+        The declarative class that corresponds to the specified table.
+
+    Raises
+    ------
+    MissingPrimaryKey
+        If the specified table does not have a primary key.
+    """
+    connection = session.connection()
+    metadata = get_metadata_from_session(session, schema)
     metadata.reflect(connection, only=[table_name], schema=schema)
     Base = automap_base(metadata=metadata)
     Base.prepare()
@@ -125,7 +153,7 @@ def get_class(
     return Base.classes[table_name]
 
 
-def get_column(
+def get_column_from_table(
     table: sa.Table,
     column_name: str
 ) -> sa.Column:
@@ -147,7 +175,7 @@ def get_column(
     return table.c[column_name]
 
 
-def primary_key_columns(
+def primary_key_columns_from_table(
     table: sa.Table
 ) ->  List[sa.Column]:
     """
