@@ -1,6 +1,7 @@
 from typing import List, Optional
 
-from sqlalchemy import Connection, Engine, MetaData, inspect
+from sqlalchemy import MetaData, inspect
+from sqlalchemy.engine import Engine, Connection
 
 
 def drop_tables(

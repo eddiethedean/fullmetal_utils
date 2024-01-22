@@ -1,5 +1,6 @@
 from typing import Any, Generator, List, Optional
 import sqlalchemy as sa
+from sqlalchemy.engine import Engine
 
 from .fullmetalalchemy.rows import row_to_dict
 from .fullmetalalchemy.tables import drop_tables, get_table_names
@@ -10,7 +11,7 @@ from fullmetal_utils.table import Table
 class Database:
     def __init__(
         self,
-        engine: Optional[sa.Engine] = None,
+        engine: Optional[Engine] = None,
         schema: Optional[str] = None,
         recreate: Optional[bool] = None,
         memory: Optional[bool] = None
@@ -23,13 +24,15 @@ class Database:
         """
         if memory:
             self.engine = sa.create_engine('sqlite://')
-        else:
+        elif type(engine) is Engine:
             self.engine = engine
+        else:
+            raise Exception('Must pass engine or memory=True')
 
         self.schema = schema
 
         if recreate:
-            drop_tables(engine, schema)
+            drop_tables(self.engine, schema)
 
     def __getitem__(self, name: str) -> Table:
         return self.table(name)

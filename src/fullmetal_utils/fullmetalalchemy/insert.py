@@ -10,7 +10,7 @@ from .sa_orm import connection_from_session, get_class, get_table
 def insert_records(
     table_name: str,
     records: Sequence[dict],
-    engine: sa.Engine,
+    engine: sa.engine.Engine,
     schema: Optional[str] = None
 ) -> None:
     with Session(engine) as session:

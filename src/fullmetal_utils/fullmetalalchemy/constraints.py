@@ -1,10 +1,10 @@
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import sqlalchemy as sa
 
 
 def get_primary_key_constraints(
     table: sa.Table
-) -> Tuple[str,  List[str]]:
+) -> Tuple[Union[str, None],  List[str]]:
     """
     Get the primary key constraints of a SQLAlchemy table.
 
@@ -30,8 +30,8 @@ def get_primary_key_constraints(
     cons = table.constraints
     for con in cons:
         if isinstance(con, sa.PrimaryKeyConstraint):
-            return con.name, [col.name for col in con.columns]
-    return tuple()
+            return str(con.name), [col.name for col in con.columns]
+    return (None, [])
 
 
 def missing_primary_key(

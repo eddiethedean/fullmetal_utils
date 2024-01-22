@@ -1,9 +1,9 @@
-from typing import Any, Dict, Iterable, Optional, Sequence, Union
+from typing import Any, Dict, Iterable, Literal, Optional, Sequence, Union
 import decimal
 import datetime
 
 import sqlalchemy as sa
-from sqlalchemy import Engine
+from sqlalchemy.engine import Engine
 from tinytim.rows import row_dicts_to_data
 from tinytim.data import column_names
 
@@ -17,7 +17,7 @@ def create_table(
     primary_key: str | Sequence[str],
     engine: Engine,
     schema: Optional[str] = None,
-    autoincrement: Optional[bool] = False,
+    autoincrement: Union[bool, Literal['auto', 'ignore_fk']] = False,
     if_exists: Optional[str] = 'error'
 ) -> sa.Table:
     """
@@ -89,12 +89,12 @@ def column_datatype(values: Iterable) -> type:
 
 def create_table_from_rows(
     table_name: str,
-    rows:  Sequence[dict],
+    rows:  Sequence[Dict[str, Any]],
     primary_key: Sequence[str],
     engine: Engine,
     column_types: Optional[Sequence] = None,
     schema: Optional[str] = None,
-    autoincrement: Optional[bool] = False,
+    autoincrement: Union[bool, Literal['auto', 'ignore_fk']] = False,
     if_exists: Optional[str] = 'error',
     columns: Optional[Sequence[str]] = None,
     missing_value: Optional[Any] = None

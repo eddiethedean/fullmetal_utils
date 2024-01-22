@@ -26,7 +26,7 @@ def get_column_names_from_table(
 
 def get_column_names(
     table_name: str,
-    engine: sa.Engine,
+    engine: sa.engine.Engine,
     schema: Optional[str] = None
 ) -> List[str]:
     """
@@ -73,7 +73,7 @@ def get_column_types_from_table(
 
 def get_column_types(
     table_name: str,
-    engine: sa.Engine,
+    engine: sa.engine.Engine,
     schema: Optional[str] = None
 ) -> Dict[str, Any]:
     """

@@ -1,18 +1,22 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import sqlalchemy as sa
 from sqlalchemy.orm.decl_api import DeclarativeMeta
 from sqlalchemy.ext.automap import automap_base
+from sqlalchemy.engine.base import Connection
+from sqlalchemy.orm.session import Session
 
 from .exeptions import MissingPrimaryKey
 
+Connectable = Union[sa.Engine, Connection]
 
-def connection_from_session(session: sa.orm.Session) -> sa.Connection:
+
+def connection_from_session(session: Session) -> Connection:
     return session.connection()
 
 
 def get_metadata(
-    connection: sa.Connection,
+    connection: Connectable,
     schema: Optional[str] = None
 ) -> sa.MetaData:
     """
@@ -47,7 +51,7 @@ def get_metadata(
 
 def get_table(
     table_name: str,
-    connection: sa.Connection,
+    connection: Connectable,
     schema: Optional[str] = None
 ) -> sa.Table:
     """
@@ -77,7 +81,7 @@ def get_table(
 
 def get_class(
     table_name: str,
-    connection: sa.Connection,
+    connection: Connectable,
     schema: Optional[str] = None
 ) -> DeclarativeMeta:
     """

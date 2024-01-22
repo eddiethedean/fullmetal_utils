@@ -1,4 +1,4 @@
-from typing import Any, Dict, Generator, Iterable, List, Optional
+from typing import Any, Dict, Generator, Iterable, List, Optional, Sequence
 
 import sqlalchemy as sa
 
@@ -15,7 +15,7 @@ from fullmetal_utils.column import Column
 class Table:
     def __init__(
         self,
-        engine: sa.Engine,
+        engine: sa.engine.Engine,
         name: str,
         schema: Optional[str] = None
     ) -> None:
@@ -41,7 +41,7 @@ class Table:
     def column_types(self) -> Dict[str, Any]:
         return get_column_types(self.name, self.engine, self.schema)
 
-    def insert_all(self, rows: Iterable[dict], pks=[]) -> None:
+    def insert_all(self, rows: Sequence[Dict[str, Any]], pks=[]) -> None:
         """
         Create new table from rows if table doesn't exist yet.
         Insert rows into table.
