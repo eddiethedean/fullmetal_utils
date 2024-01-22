@@ -1,13 +1,14 @@
 from typing import Optional, Sequence
+
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
-from .constraints import missing_primary_key
+from .constraints import missing_primary_key_with_table
 from .exeptions import MissingPrimaryKey
-from .sa_orm import get_class_from_session, get_table_from_engine
+from .sa_orm import get_class_with_session, get_table_from_engine
 
 
-def insert_records(
+def insert_records_with_engine(
     table_name: str,
     records: Sequence[dict],
     engine: sa.engine.Engine,
@@ -15,11 +16,11 @@ def insert_records(
 ) -> None:
     table = get_table_from_engine(table_name, engine, schema)
     with Session(engine) as session:
-        insert_records_session(table, records, session)
+        insert_records_with_session(table, records, session)
         session.commit()
 
 
-def insert_records_session(
+def insert_records_with_session(
     table: sa.Table,
     records: Sequence[dict],
     session: Session
@@ -41,13 +42,13 @@ def insert_records_session(
     -------
     None
     """
-    if missing_primary_key(table):
-        insert_records_slow_session(table, records, session)
+    if missing_primary_key_with_table(table):
+        insert_records_slow_with_session(table, records, session)
     else:
-        insert_records_fast_session(table, records, session)
+        insert_records_fast_with_session(table, records, session)
 
 
-def insert_records_fast_session(
+def insert_records_fast_with_session(
     table: sa.Table,
     records: Sequence[dict],
     session: Session
@@ -73,14 +74,14 @@ def insert_records_fast_session(
     -------
     None
     """
-    if missing_primary_key(table):
+    if missing_primary_key_with_table(table):
         raise MissingPrimaryKey()
-    table_class = get_class_from_session(table.name, session, schema=table.schema)
+    table_class = get_class_with_session(table.name, session, schema=table.schema)
     mapper = sa.inspect(table_class)
     session.bulk_insert_mappings(mapper, records)
 
 
-def insert_records_slow_session(
+def insert_records_slow_with_session(
     table: sa.Table,
     records: Sequence[dict],
     session: Session

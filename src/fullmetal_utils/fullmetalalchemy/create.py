@@ -11,7 +11,7 @@ from . import sa_orm
 from . import type_convert
 
 
-def create_table(
+def create_table_with_engine(
     name: str,
     columns: Dict[str, Any],
     primary_key: str | Sequence[str],
@@ -55,7 +55,7 @@ def create_table(
             col = sa.Column(col_name, sa_type)
         cols.append(col)
 
-    metadata = sa_orm.get_metadata_from_engine(engine, schema)
+    metadata = sa_orm.get_metadata_with_engine(engine, schema)
     table = sa.Table(name, metadata, *cols, schema=schema)
     if if_exists == 'replace':
         drop_table_sql = sa.schema.DropTable(table, if_exists=True)
@@ -87,7 +87,7 @@ def column_datatype(values: Iterable) -> type:
     return str
 
 
-def create_table_from_rows(
+def create_table_from_rows_with_engine(
     table_name: str,
     rows:  Sequence[Dict[str, Any]],
     primary_key: Sequence[str],
@@ -111,4 +111,4 @@ def create_table_from_rows(
         column_types = [column_datatype(values) for values in data.values()]
     col_names = column_names(data)
     cols = dict(zip(col_names, column_types))
-    return create_table(table_name, cols, primary_key, engine, schema, autoincrement, if_exists)
+    return create_table_with_engine(table_name, cols, primary_key, engine, schema, autoincrement, if_exists)

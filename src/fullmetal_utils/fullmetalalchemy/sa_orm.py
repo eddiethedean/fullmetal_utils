@@ -8,7 +8,7 @@ from sqlalchemy.orm.session import Session
 from .exeptions import MissingPrimaryKey
 
 
-def get_metadata_from_engine(
+def get_metadata_with_engine(
     engine: sa.Engine,
     schema: Optional[str] = None
 ) -> sa.MetaData:
@@ -35,16 +35,16 @@ def get_metadata_from_engine(
     # return sa.MetaData(bind=engine, schema=schema)
 
 
-def get_metadata_from_session(
+def get_metadata_with_session(
     session: Session,
     schema: Optional[str] = None
 ) -> sa.MetaData:
     """
     Get a SQLAlchemy MetaData object associated with a given database connection and schema.
     """
-    con = session.connection()
+    connection = session.connection()
     meta = sa.MetaData(schema=schema)
-    meta.reflect(bind=con)
+    meta.reflect(bind=connection)
     return meta
 
 
@@ -70,7 +70,7 @@ def get_table_from_engine(
     sqlalchemy.Table
         The Table object associated with the input table name, database connection, and schema.
     """
-    metadata = get_metadata_from_engine(engine, schema)
+    metadata = get_metadata_with_engine(engine, schema)
     return sa.Table(table_name,
                     metadata,
                     autoload_with=engine,
@@ -78,7 +78,21 @@ def get_table_from_engine(
                     schema=schema)
 
 
-def get_class_from_engine(
+def get_table_from_session(
+    table_name: str,
+    session: Session,
+    schema: Optional[str] = None
+) -> sa.Table:
+    metadata = get_metadata_with_session(session, schema)
+    connection = session.connection()
+    return sa.Table(table_name,
+                    metadata,
+                    autoload_with=connection,
+                    extend_existing=True,
+                    schema=schema)
+
+
+def get_class_with_engine(
     table_name: str,
     engine: sa.Engine,
     schema: Optional[str] = None
@@ -106,7 +120,7 @@ def get_class_from_engine(
     MissingPrimaryKey
         If the specified table does not have a primary key.
     """
-    metadata = get_metadata_from_engine(engine, schema)
+    metadata = get_metadata_with_engine(engine, schema)
     metadata.reflect(engine, only=[table_name], schema=schema)
     Base = automap_base(metadata=metadata)
     Base.prepare()
@@ -115,7 +129,7 @@ def get_class_from_engine(
     return Base.classes[table_name]
 
 
-def get_class_from_session(
+def get_class_with_session(
     table_name: str,
     session: Session,
     schema: Optional[str] = None
@@ -144,7 +158,7 @@ def get_class_from_session(
         If the specified table does not have a primary key.
     """
     connection = session.connection()
-    metadata = get_metadata_from_session(session, schema)
+    metadata = get_metadata_with_session(session, schema)
     metadata.reflect(connection, only=[table_name], schema=schema)
     Base = automap_base(metadata=metadata)
     Base.prepare()
@@ -153,7 +167,7 @@ def get_class_from_session(
     return Base.classes[table_name]
 
 
-def get_column_from_table(
+def get_column_with_table(
     table: sa.Table,
     column_name: str
 ) -> sa.Column:
@@ -175,7 +189,7 @@ def get_column_from_table(
     return table.c[column_name]
 
 
-def primary_key_columns_from_table(
+def primary_key_columns_with_table(
     table: sa.Table
 ) ->  List[sa.Column]:
     """

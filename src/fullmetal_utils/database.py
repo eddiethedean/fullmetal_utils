@@ -3,7 +3,7 @@ import sqlalchemy as sa
 from sqlalchemy.engine import Engine
 
 from .fullmetalalchemy.rows import row_to_dict
-from .fullmetalalchemy.tables import drop_tables, get_table_names
+from .fullmetalalchemy.tables import drop_tables_with_engine, get_table_names_with_engine
 
 from fullmetal_utils.table import Table
 
@@ -32,7 +32,7 @@ class Database:
         self.schema = schema
 
         if recreate:
-            drop_tables(self.engine, schema)
+            drop_tables_with_engine(self.engine, schema)
 
     def __getitem__(self, name: str) -> Table:
         return self.table(name)
@@ -42,7 +42,7 @@ class Database:
         return [Table(self.engine, name, self.schema) for name in self.table_names()]
     
     def table_names(self) -> List[str]:
-        return get_table_names(self.engine, self.schema)
+        return get_table_names_with_engine(self.engine, self.schema)
     
     # TODO: view_names method
 

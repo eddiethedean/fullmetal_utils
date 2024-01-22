@@ -2,7 +2,7 @@ from typing import List, Tuple, Union
 import sqlalchemy as sa
 
 
-def get_primary_key_constraints(
+def get_primary_key_constraints_with_table(
     table: sa.Table
 ) -> Tuple[Union[str, None],  List[str]]:
     """
@@ -34,7 +34,7 @@ def get_primary_key_constraints(
     return (None, [])
 
 
-def missing_primary_key(
+def missing_primary_key_with_table(
     table: sa.Table,
 ) -> bool:
     """
@@ -58,5 +58,5 @@ def missing_primary_key(
     >>> fa.features.missing_primary_key(table)
     False
     """
-    pks = get_primary_key_constraints(table)
+    pks = get_primary_key_constraints_with_table(table)
     return pks[1] == []

@@ -5,7 +5,7 @@ import sqlalchemy as sa
 from .sa_orm import get_table_from_engine
 
 
-def get_column_names_from_table(
+def get_column_names_with_table(
     table: sa.Table
 ) ->  List[str]:
     """
@@ -24,7 +24,7 @@ def get_column_names_from_table(
     return [c.name for c in table.columns]
 
 
-def get_column_names(
+def get_column_names_with_engine(
     table_name: str,
     engine: sa.engine.Engine,
     schema: Optional[str] = None
@@ -47,10 +47,10 @@ def get_column_names(
         A list of the column names for the given table name.
     """
     table = get_table_from_engine(table_name, engine, schema)
-    return get_column_names_from_table(table)
+    return get_column_names_with_table(table)
     
 
-def get_column_types_from_table(
+def get_column_types_with_table(
     table: sa.Table
 ) -> Dict[str, Any]:
     """
@@ -70,7 +70,7 @@ def get_column_types_from_table(
     return {c.name: c.type for c in table.c}
 
 
-def get_column_types(
+def get_column_types_with_engine(
     table_name: str,
     engine: sa.engine.Engine,
     schema: Optional[str] = None
@@ -94,4 +94,4 @@ def get_column_types(
         types of the columns as values.
     """
     table = get_table_from_engine(table_name, engine, schema)
-    return get_column_types_from_table(table)
+    return get_column_types_with_table(table)
