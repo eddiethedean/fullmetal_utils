@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from .constraints import missing_primary_key_with_table
 from .exeptions import MissingPrimaryKey
-from .sa_orm import get_class_with_session, get_table_from_engine
+from .sa_orm import get_class_with_session, get_table_from_engine, get_table_from_session
 
 
 def insert_records_with_engine(
@@ -21,7 +21,7 @@ def insert_records_with_engine(
 
 
 def insert_records_with_session(
-    table: sa.Table,
+    table_name: str,
     records: Sequence[dict],
     session: Session
 ) -> None:
@@ -42,6 +42,7 @@ def insert_records_with_session(
     -------
     None
     """
+    table = get_table_from_session(table_name, session)
     if missing_primary_key_with_table(table):
         insert_records_slow_with_session(table, records, session)
     else:

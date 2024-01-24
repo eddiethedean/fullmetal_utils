@@ -49,12 +49,11 @@ class TestBasic(unittest.TestCase):
             {'name': 'Emma'}
         ]
         with Session(self.engine) as session:
-            table = get_table_from_session('users', session)
-            insert_records_with_session(table, records, session)
+            insert_records_with_session('users', records, session)
             session.commit()
         
-        session = Session(self.engine)
-        rows = select_all_rows_with_table_session(User, session)
-        self.assertDictEqual({'id': 4, 'name': 'Olivia'}, rows[0])
-        self.assertDictEqual({'id': 5, 'name': 'Noah'}, rows[1])
-        self.assertDictEqual({'id': 6, 'name': 'Emma'}, rows[2])
+        with Session(self.engine) as session:
+            rows = select_all_rows_with_table_session(User, session)
+        self.assertDictEqual({'id': 1, 'name': 'Olivia'}, rows[0])
+        self.assertDictEqual({'id': 2, 'name': 'Noah'}, rows[1])
+        self.assertDictEqual({'id': 3, 'name': 'Emma'}, rows[2])
