@@ -1,10 +1,21 @@
-from typing import Any, Dict, Generator, Optional, Sequence
+from typing import Any, Dict, Generator, Optional, Sequence, List
 
 import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
 from fullmetal_utils.fullmetalalchemy.rows import row_to_dict
 from fullmetal_utils.fullmetalalchemy.sa_orm import get_column_with_table, get_table_from_engine, get_table_from_session, primary_key_columns_with_table
+from sqlalchemy import select
+
+
+def select_all_rows_with_table_session(
+    table,
+    session: Session
+) -> List[Dict[str, Any]]:
+    stmt = select(table)
+    connection = session.connection()
+    results = connection.execute(stmt)
+    return list(rows_from_results(results))
 
 
 def select_records_all_query_with_table(
